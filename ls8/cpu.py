@@ -85,3 +85,4 @@ class CPU:
             elif self.ram[self.pc] == 0b01000111:
                 print(self.reg[self.ram_read(self.pc+1)])
                 self.pc += 2
+
