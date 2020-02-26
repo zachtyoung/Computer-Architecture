@@ -4,12 +4,16 @@ import sys
 
 class CPU:
     """Main CPU class."""
+#The SP points at the value at the top of the stack (most recently pushed), or at address F4 if the stack is empty.
+#PUSH 01000101 00000rrr
+#POP  01000110 00000rrr
 
     def __init__(self):
         """Construct a new CPU."""
         self.ram = [0] * 256
         self.reg = [0] * 8
         self.pc = 0
+        self.sp = 7
 
     def ram_read(self, address):
         return self.ram[address]
@@ -110,4 +114,18 @@ class CPU:
                 operand_2 = self.reg[self.ram_read(self.pc+2)]
                 self.reg[self.ram_read(self.pc+1)] = operand_1 * operand_2
                 self.pc += 3
+            #PUSH
+            elif self.ram[self.pc] == 0b01000101:
+                reg = self.ram[self.pc + 1]
+                val = self.reg[reg]
+                self.reg[self.sp] -= 1
+                self.ram[self.reg[self.sp]] = val
+                self.pc += 2
+            #POP
+            elif self.ram[self.pc] == 0b01000110:
+                reg = self.ram[self.pc + 1]
+                val = self.ram[self.reg[self.sp]]
+                self.reg[reg] = val
+                self.reg[self.sp] += 1
+                self.pc += 2
 
