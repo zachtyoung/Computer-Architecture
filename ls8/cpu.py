@@ -1,4 +1,14 @@
 """CPU functionality."""
+#CMP
+#Compare the values in two registers.
+
+
+#JEQ
+
+#JMP
+
+
+#JNE
 
 import sys
 
@@ -12,8 +22,9 @@ class CPU:
         """Construct a new CPU."""
         self.ram = [0] * 256
         self.reg = [0] * 8
-        self.pc = 0
-        self.sp = 7
+        self.pc = 0 #pointer to current instruction
+        self.sp = 7 # stack pointer
+        self.fl = [0] * 8 #flags register
 
     def ram_read(self, address):
         return self.ram[address]
@@ -67,7 +78,8 @@ class CPU:
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+        elif op == "SUB":
+            self.reg[reg_a] -= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -79,7 +91,7 @@ class CPU:
 
         print(f"TRACE: %02X | %02X %02X %02X |" % (
             self.pc,
-            #self.fl,
+            self.fl,
             #self.ie,
             self.ram_read(self.pc),
             self.ram_read(self.pc + 1),
@@ -128,4 +140,38 @@ class CPU:
                 self.reg[reg] = val
                 self.reg[self.sp] += 1
                 self.pc += 2
-
+            #JNE
+            elif self.ram[self.pc] == 0b01010110:
+                # If E flag is clear (false, 0), jump to the address stored in the given register.
+                if self.fl[7]== 0:
+                    self.pc = self.reg[self.ram_read(self.pc+1)]
+                else:
+                    self.pc += 2
+            #CMP
+            elif self.ram[self.pc] == 0b10100111:
+                reg_a = self.reg[self.ram_read(self.pc+1)]
+                reg_b = self.reg[self.ram_read(self.pc+2)]
+                #If they are equal, set the Equal E flag to 1, otherwise set it to 0.
+                if reg_a == reg_b:
+                    self.fl[7] = 1
+                #If registerA is less than registerB, set the Less-than L flag to 1, otherwise set it to 0.
+                elif reg_a < reg_b:
+                    self.fl[5] = 1
+                #If registerA is greater than registerB, set the Greater-than G flag to 1, otherwise set it to 0.
+                elif reg_a > reg_b:
+                    self.fl[6] = 1
+                self.pc += 3
+            #JEQ    
+            elif self.ram[self.pc] == 0b01010101:
+            #If equal flag is set (true), jump to the address stored in the given register.
+                if self.fl[7] == 1:
+                    self.pc = self.reg[self.ram_read(self.pc+1)]
+                else:
+                    self.pc += 2
+            # JMP
+            elif self.ram[self.pc] == 0b01010100:
+                #Jump to the address stored in the given register.
+                register = self.ram_read(self.pc+1)
+                #Set the PC to the address stored in the given register.
+                self.pc = register
+                self.pc += 2
